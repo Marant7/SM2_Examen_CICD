@@ -51,23 +51,6 @@ jobs:
       - name: Run Unit Tests
         run: flutter test test/session_service_test.dart test/rating_service_test.dart --coverage
 
-      # 8. Generar resumen de pruebas
-      - name: Generate Test Summary
-        if: always()
-        run: |
-          echo "## 🧪 Test Results" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "✅ **Tests ejecutados exitosamente**" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### 📊 Tests ejecutados:" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ SessionService (3 tests)" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ RatingService (3 tests)" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Total:** 6 pruebas unitarias" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### 📝 Análisis de código:" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Código analizado con flutter analyze" >> $GITHUB_STEP_SUMMARY
-          echo "- ℹ️ Warnings ignorados (solo errores críticos)" >> $GITHUB_STEP_SUMMARY
 
   # ============================================================================
   # STAGE 2: BUILD (Compilar APK)
@@ -131,7 +114,4 @@ jobs:
           echo "1. ✅ Quality Checks (Linting & Tests)" >> $GITHUB_STEP_SUMMARY
           echo "2. ✅ Build APK (Release)" >> $GITHUB_STEP_SUMMARY
           echo "3. ✅ Upload Artifact" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### 🎯 Próximos pasos:" >> $GITHUB_STEP_SUMMARY
-          echo "- Para crear una Release: crea un tag con `git tag v1.0.0` y haz push" >> $GITHUB_STEP_SUMMARY
-          echo "- Los APKs generados están disponibles en **Artifacts**" >> $GITHUB_STEP_SUMMARY
+
