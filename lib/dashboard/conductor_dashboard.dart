@@ -18,7 +18,6 @@ class ConductorDashboard extends StatefulWidget {
 }
 
 class _ConductorDashboardState extends State<ConductorDashboard> {
-  final SessionService _sessionService = SessionService();
   final User? user = FirebaseAuth.instance.currentUser;
   String? _userName;
 
@@ -85,9 +84,6 @@ class _ConductorDashboardState extends State<ConductorDashboard> {
 
   void _cambiarAPasajero(BuildContext context) async {
     try {
-      final sessionService = SessionService();
-      
-      
       if (mounted) {
         Navigator.pushAndRemoveUntil(
           context,

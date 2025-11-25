@@ -19,7 +19,6 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
   final TextEditingController _apellidosController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _telefonoController = TextEditingController();
-  String? _errorMessage;
 
   bool _editMode = false; // Para alternar entre vista y edición
 
