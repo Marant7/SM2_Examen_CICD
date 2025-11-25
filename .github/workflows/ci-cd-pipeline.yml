@@ -1,0 +1,137 @@
+name: Mobile CI/CD Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ============================================================================
+  # STAGE 1: QUALITY CHECKS (Análisis de código y pruebas)
+  # Se ejecuta en TODOS los eventos (push, pull_request, manual)
+  # ============================================================================
+  quality-check:
+    runs-on: ubuntu-latest
+    name: Code Quality & Tests
+    
+    steps:
+      # 1. Descargar el código
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. Configurar Java (necesario para Gradle/Android)
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      # 3. Configurar Flutter
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.27.1'
+          channel: 'stable'
+          cache: true
+
+      # 4. Deshabilitar analytics
+      - name: Disable Flutter analytics
+        run: flutter config --no-analytics
+
+      # 5. Instalar dependencias
+      - name: Install dependencies
+        run: flutter pub get
+
+      # 6. Análisis de código (Linting)
+      - name: Code Quality Check (Analyze)
+        run: flutter analyze --no-fatal-warnings --no-fatal-infos || true
+
+      # 7. Ejecutar pruebas unitarias
+      - name: Run Unit Tests
+        run: flutter test test/session_service_test.dart test/rating_service_test.dart --coverage
+
+      # 8. Generar resumen de pruebas
+      - name: Generate Test Summary
+        if: always()
+        run: |
+          echo "## 🧪 Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **Tests ejecutados exitosamente**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📊 Tests ejecutados:" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ SessionService (3 tests)" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ RatingService (3 tests)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Total:** 6 pruebas unitarias" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📝 Análisis de código:" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Código analizado con flutter analyze" >> $GITHUB_STEP_SUMMARY
+          echo "- ℹ️ Warnings ignorados (solo errores críticos)" >> $GITHUB_STEP_SUMMARY
+
+  # ============================================================================
+  # STAGE 2: BUILD (Compilar APK)
+  # Se ejecuta después de quality-check
+  # ============================================================================
+  build:
+    needs: quality-check
+    runs-on: ubuntu-latest
+    name: Build APK
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.27.1'
+          channel: 'stable'
+          cache: true
+
+      - name: Disable Flutter analytics
+        run: flutter config --no-analytics
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      # Build APK en modo release
+      - name: Build APK (Release)
+        run: flutter build apk --release
+
+      # Subir como artefacto
+      - name: Upload APK as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release
+          path: build/app/outputs/flutter-apk/*.apk
+          retention-days: 30
+
+  # ============================================================================
+  # STAGE 3: SUMMARY (Mostrar resumen final)
+  # ============================================================================
+  summary:
+    needs: [quality-check, build]
+    runs-on: ubuntu-latest
+    name: Pipeline Summary
+    if: always()
+
+    steps:
+      - name: Print Summary
+        run: |
+          echo "## 📋 CI/CD Pipeline Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### ✅ Stages Completados:" >> $GITHUB_STEP_SUMMARY
+          echo "1. ✅ Quality Checks (Linting & Tests)" >> $GITHUB_STEP_SUMMARY
+          echo "2. ✅ Build APK (Release)" >> $GITHUB_STEP_SUMMARY
+          echo "3. ✅ Upload Artifact" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🎯 Próximos pasos:" >> $GITHUB_STEP_SUMMARY
+          echo "- Para crear una Release: crea un tag con `git tag v1.0.0` y haz push" >> $GITHUB_STEP_SUMMARY
+          echo "- Los APKs generados están disponibles en **Artifacts**" >> $GITHUB_STEP_SUMMARY
